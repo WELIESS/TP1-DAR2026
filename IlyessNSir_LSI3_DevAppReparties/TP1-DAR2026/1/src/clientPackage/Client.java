@@ -1,18 +1,34 @@
 package clientPackage;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class Client {
     public static void main(String[] args) {
         try {
-            // La première étape : le client n'est pas encore connecté
             System.out.println("Je suis un client pas encore connecté...");
-
-            // La deuxième étape : connexion au serveur (adresse + port)
             Socket socket = new Socket("localhost", 1234);
             System.out.println("je suis un client connecté");
 
-            // La dernière étape : fermer socket
+            DataInputStream in = new DataInputStream(socket.getInputStream());
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            Scanner sc = new Scanner(System.in);
+
+            int x;
+            do {
+                System.out.print("Entrez un entier (0 pour arrêter) : ");
+                x = sc.nextInt();
+                out.writeInt(x);
+                if (x != 0) {
+                    int resultat = in.readInt();
+                    System.out.println("Résultat (x * 5) = " + resultat);
+                }
+            } while (x != 0);
+
+            System.out.println("Fin de la communication");
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
