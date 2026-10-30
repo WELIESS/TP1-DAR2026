@@ -1,33 +1,70 @@
 TP 3 : Serveur Multi-threads - sockets en mode connecté TCP
-Activité 3-1 : Acceptation de plusieurs clients
-
+Activité 3-2 : Amélioration de l’application calculatrice
 
 Ilyess Nsir LSI3
 
-Étape 2 : Serveur multi-thread
-1. Implémentation
-a) Serveur multi-thread : le serveur boucle sur accept(). À chaque nouveau client, il crée un thread (ClientHandler) qui s'occupe de ce client, puis retourne attendre le suivant. Plusieurs clients sont donc servis en même temps.
-b) Informations côté serveur : pour chaque client connecté, le serveur affiche son adresse IP (obtenue avec getRemoteSocketAddress()) et son numéro d'ordre de connexion (client n°1, n°2...).
-c) Numéro d'ordre : le serveur envoie à chaque client son numéro d'ordre avec un message de bienvenue.
+Étape 1 : Serveur multi-thread pour le service de calculatrice
 
+Principe :
+
+Le service de calculatrice est intégré dans le serveur multi-thread. Chaque client est géré par un thread ClientProcess.
+Le client communique avec le serveur par objets : il envoie un objet Operation (premier opérande, opérateur, deuxième opérande) avec ObjectOutputStream, et reçoit le résultat.
+Le serveur affiche l'adresse IP et le numéro de chaque client connecté.
 
 
 Serveur démarré :
 
-2. Tests locaux
+Test 3 : plusieurs clients sur la machine locale
 
-a) Clients Telnet (telnet localhost 1234 dans une invite de commandes)
+Console du serveur :
 
 img/1.png
 
-b) Clients Java (plusieurs exécutions de Client.java)
+
+Test 4 : plusieurs machines du réseau local
+
+Adresse IP de la machine serveur (ipconfig) :
+
+
+Client sur une autre machine :
 
 img/2.png
+
+Étape 3 : Gestion d'un accès concurrent
+
+Un compteur global (classe Compteur) indique le nombre total d'opérations traitées par le serveur. Il est partagé entre tous les threads ClientProcess : c'est une ressource critique.
+
+À chaque opération calculée :
+
+le compteur est incrémenté,
+sa nouvelle valeur est affichée dans la console du serveur.
+
+L'incrémentation et l'affichage sont dans une méthode synchronized. Un seul thread à la fois peut l'exécuter.
+
+Code de la classe Compteur :
+
+Test 1 : service avec plusieurs clients en parallèle
+
+img/3-3.png
+
+Test 2 : le compteur reste cohérent
+
 img/3.png
-img/4.png
+
+Chaque opération incrémente le compteur de 1, sans valeur perdue ni doublon (1, 2, 3, 4, ...).
+
+
+Test 3 : plusieurs machines du même réseau
+
+img/3-2.png
+"le test a été fait avec votre IP réelle. pas d'une autre machine"
+
+Étape 4 : Dépôt des livrables
 
 Le projet est déposé sur GitHub et le lien du repository est remis sur l'ENT.
 
-Synthèse
 
-Un serveur à un seul thread ne peut servir qu'un client à la fois : tant qu'il traite le premier, les autres attendent. En créant un thread par client (ClientHandler), le serveur revient tout de suite à accept() et accepte de nouveaux clients pendant que les précédents sont servis. Le numéro d'ordre de connexion est géré par un compteur partagé (AtomicInteger) pour éviter les erreurs quand plusieurs threads l'utilisent. Les tests avec Telnet et avec le client Java ont montré que plusieurs clients peuvent être connectés simultanément, chacun avec son numéro, en local comme sur plusieurs machines du même réseau.
+Synthèse
+Multi-thread : le serveur crée un thread ClientProcess par client. Chaque client a sa propre communication, indépendante des autres, et le serveur reste disponible pour de nouvelles connexions.
+Communication par objets : l'objet Operation (Serializable) regroupe les trois éléments de l'opération et circule dans les flux ObjectOutputStream / ObjectInputStream.
+Accès concurrent : sans protection, deux threads qui incrémentent le compteur en même temps peuvent lire la même valeur et écrire le même résultat, donc une opération est perdue (condition de concurrence). Avec le mot-clé synchronized, un seul thread à la fois modifie le compteur, et sa valeur reste cohérente, même avec plusieurs clients en parallèle ou sur plusieurs machines.

@@ -2,7 +2,7 @@ package modelPackage;
  
 import java.io.Serializable;
  
-// a) Classe qui implémente Serializable : ses objets peuvent circuler sur le réseau
+// Objet échangé entre le client et le serveur : premier opérande, opérateur, deuxième opérande
 public class Operation implements Serializable {
  
     private static final long serialVersionUID = 1L;
@@ -26,3 +26,4 @@ public class Operation implements Serializable {
         return operande1 + " " + operateur + " " + operande2;
     }
 }
+ 
