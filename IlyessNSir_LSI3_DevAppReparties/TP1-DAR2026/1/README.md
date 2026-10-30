@@ -1,31 +1,29 @@
-Activité 1-3 : Connexion entre deux machines et calculatrice améliorée
+TP2 : Les sockets en mode connecté TCP : E/R de CC & objets
+Activité 2-1 : Échange de CC entre Client/Serveur via les Sockets TCP
 
-ilyess nsir LSI3 1 tp 2
+Ilyess Nsir LSI3
 
-Étape 1 : Connexion Client/Serveur sur deux machines distinctes
 
-Principe : localhost est remplacé par l'adresse IP réelle de la machine serveur. Les deux machines sont sur le même réseau local.
+Étape 2 : Flux de traitement
 
-Côté serveur : ServerSocket est lié à l'adresse IP de la machine avec InetSocketAddress(InetAddress, port) et bind().
-Côté client : la connexion se fait vers l'adresse IP du serveur avec InetAddress.getByName(...) et InetSocketAddress.
-Port utilisé : 1234.
+Principe :
+
+Le client saisit une opération, par exemple 55 * 25.
+La syntaxe est validée côté client (entier, opérateur + - * /, entier) avant l'envoi.
+Le client envoie le premier opérande, l'opérateur et le deuxième opérande au serveur (writeInt, writeChar, writeInt).
+Le serveur lit les trois éléments, calcule l'opération et renvoie le résultat.
+Le client lit le résultat et l'affiche.
+
+Le serveur vérifie aussi l'opérateur et refuse la division par zéro. Le client tape q pour terminer.
 
 img/1.png
-
-Étape 2 : Service de calculatrice amélioré
-
-Le client affiche un menu : 1. Addition, 2. Soustraction, 3. Multiplication, 4. Division, 0. Quitter.
-
 img/2.png
 
-Le client envoie le choix puis la valeur x au serveur.
-Le serveur calcule selon l'opération (x + 5, x - 5, x * 5, x / 5).
-Le serveur renvoie le résultat, le client l'affiche.
-Le choix 0 arrête proprement la communication.
+Étape 3 : Dépôt des livrables
+
+Le projet est déposé sur GitHub et le lien du repository est remis sur l'ENT.
 
 
-img/3.png
+Conclusion
 
-Conclusion:
-
-L'application fonctionne entre deux machines du même réseau grâce à l'adresse IP du serveur. Le client choisit une opération, le serveur effectue le calcul et renvoie le résultat.
+Le client envoie une opération en trois éléments (opérande, opérateur, opérande) avec DataOutputStream. Le serveur la calcule avec DataInputStream et renvoie le résultat. La validation de la syntaxe évite d'envoyer des chaînes incorrectes.

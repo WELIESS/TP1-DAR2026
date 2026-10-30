@@ -3,53 +3,63 @@ package clientPackage;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
  
 public class Client {
  
-    // A MODIFIER : adresse IP de la machine SERVEUR (plus de localhost)
+    // A MODIFIER si le serveur est sur une autre machine
     static final String IP_SERVEUR = "192.168.1.12";
     static final int PORT = 1234;
  
     public static void main(String[] args) {
+        // Syntaxe valide : entier, opérateur (+ - * /), entier   Ex : 55 * 25
+        Pattern syntaxe = Pattern.compile("^\\s*(-?\\d+)\\s*([+\\-*/])\\s*(-?\\d+)\\s*$");
+ 
         try {
             System.out.println("Je suis un client pas encore connecté...");
-            InetAddress adresse = InetAddress.getByName(IP_SERVEUR);
-            Socket socket = new Socket();
-            socket.connect(new InetSocketAddress(adresse, PORT), 5000);
-            System.out.println("je suis un client connecté à " + IP_SERVEUR + ":" + PORT);
+            Socket socket = new Socket(IP_SERVEUR, PORT);
+            System.out.println("je suis un client connecté");
  
             DataInputStream in = new DataInputStream(socket.getInputStream());
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             Scanner sc = new Scanner(System.in);
  
-            int choix;
-            do {
-                System.out.println("\n--- MENU ---");
-                System.out.println("1. Addition       (x + 5)");
-                System.out.println("2. Soustraction   (x - 5)");
-                System.out.println("3. Multiplication (x * 5)");
-                System.out.println("4. Division       (x / 5)");
-                System.out.println("0. Quitter");
-                System.out.print("Votre choix : ");
-                choix = sc.nextInt();
+            while (true) {
+                System.out.print("Entrez une opération (ex : 55 * 25) ou 'q' pour quitter : ");
+                String ligne = sc.nextLine().trim();
  
-                if (choix < 0 || choix > 4) {
-                    System.out.println("Choix invalide, recommencez.");
+                if (ligne.equalsIgnoreCase("q")) {
+                    out.writeBoolean(false);            // prévient le serveur de l'arrêt
+                    break;
+                }
+ 
+                // Validation de la syntaxe AVANT l'envoi au serveur
+                Matcher m = syntaxe.matcher(ligne);
+                if (!m.matches()) {
+                    System.out.println("Syntaxe invalide. Format attendu : entier opérateur entier (+ - * /)");
                     continue;
                 }
-                out.writeInt(choix);          // envoi du choix
-                if (choix != 0) {
-                    System.out.print("Entrez un entier x : ");
-                    int x = sc.nextInt();
-                    out.writeInt(x);          // envoi de x
-                    double resultat = in.readDouble();
-                    System.out.println("Résultat = " + resultat);
+ 
+                int a, b;
+                try {
+                    a = Integer.parseInt(m.group(1));
+                    b = Integer.parseInt(m.group(3));
+                } catch (NumberFormatException e) {
+                    System.out.println("Nombre trop grand.");
+                    continue;
                 }
-            } while (choix != 0);
+                char op = m.group(2).charAt(0);
+ 
+                out.writeBoolean(true);                 // une opération arrive
+                out.writeInt(a);                        // premier opérande
+                out.writeChar(op);                      // opérateur
+                out.writeInt(b);                        // deuxième opérande
+ 
+                System.out.println(in.readUTF());       // lecture et affichage du résultat
+            }
  
             System.out.println("Fin de la communication");
             socket.close();
