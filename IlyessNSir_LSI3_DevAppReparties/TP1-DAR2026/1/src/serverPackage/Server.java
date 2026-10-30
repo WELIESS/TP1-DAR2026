@@ -1,10 +1,11 @@
 package serverPackage;
  
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import modelPackage.Operation;
  
 public class Server {
  
@@ -19,22 +20,32 @@ public class Server {
                 Socket socket = serverSocket.accept();
                 System.out.println("Client connecté : " + socket.getInetAddress().getHostAddress());
  
-                DataInputStream in = new DataInputStream(socket.getInputStream());
-                DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                // Important : créer ObjectOutputStream en premier et faire flush()
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                out.flush();
+                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
  
                 try {
-                    while (in.readBoolean()) {          // true = une opération arrive
-                        int a = in.readInt();           // premier opérande
-                        char op = in.readChar();        // opérateur
-                        int b = in.readInt();           // deuxième opérande
+                    while (true) {
+                        Object recu = in.readObject();            // c) réception de l'objet
+                        if (recu instanceof String) {             // "FIN" : le client arrête
+                            System.out.println("Le client a terminé la communication");
+                            break;
+                        }
+                        Operation op = (Operation) recu;
+                        // d) récupération des données de l'objet
+                        int a = op.getOperande1();
+                        char o = op.getOperateur();
+                        int b = op.getOperande2();
+                        System.out.println("Objet reçu : " + op);
  
-                        String reponse = calculer(a, op, b);
-                        System.out.println(a + " " + op + " " + b + " -> " + reponse);
-                        out.writeUTF(reponse);          // envoi du résultat
+                        String reponse = calculer(a, o, b);       // e) calcul
+                        System.out.println("Résultat envoyé : " + reponse);
+                        out.writeObject(reponse);                 // f) envoi du résultat
+                        out.flush();
                     }
-                    System.out.println("Le client a terminé la communication");
-                } catch (IOException e) {
-                    System.out.println("Connexion interrompue par le client");
+                } catch (IOException | ClassNotFoundException e) {
+                    System.out.println("Connexion interrompue : " + e.getMessage());
                 }
                 socket.close();
             }
@@ -43,7 +54,6 @@ public class Server {
         }
     }
  
-    // Calcule l'opération et renvoie le texte à afficher chez le client
     static String calculer(int a, char op, int b) {
         switch (op) {
             case '+': return "Résultat = " + ((long) a + b);

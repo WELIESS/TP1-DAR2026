@@ -1,20 +1,22 @@
-TP2 : Les sockets en mode connecté TCP : E/R de CC & objets
-Activité 2-1 : Échange de CC entre Client/Serveur via les Sockets TCP
+TP 2 : Les sockets en mode connecté TCP : E/R de CC & objets
+Activité 2-2 : Échange des objets entre Client/Serveur via les Sockets TCP
 
 Ilyess Nsir LSI3
 
 
-Étape 2 : Flux de traitement
+Étape 2 : Implémentation de l'échange d'objets
 
 Principe :
 
-Le client saisit une opération, par exemple 55 * 25.
-La syntaxe est validée côté client (entier, opérateur + - * /, entier) avant l'envoi.
-Le client envoie le premier opérande, l'opérateur et le deuxième opérande au serveur (writeInt, writeChar, writeInt).
-Le serveur lit les trois éléments, calcule l'opération et renvoie le résultat.
-Le client lit le résultat et l'affiche.
+a) La classe Operation implémente Serializable. Elle contient le premier opérande, l'opérateur et le deuxième opérande.
+b) Le client crée un objet Operation et l'envoie avec ObjectOutputStream.writeObject().
+c) Le serveur reçoit l'objet avec ObjectInputStream.readObject().
+d) Le serveur récupère les données avec les getters.
+e) Le serveur effectue le calcul.
+f) Le serveur renvoie le résultat au client.
+g) Le client lit et affiche le résultat.
 
-Le serveur vérifie aussi l'opérateur et refuse la division par zéro. Le client tape q pour terminer.
+Serializable permet de transformer l'objet en suite d'octets pour le faire passer dans le socket, puis de le reconstruire de l'autre côté. La classe Operation doit être identique (même package) chez le client et chez le serveur.
 
 img/1.png
 img/2.png
@@ -23,7 +25,6 @@ img/2.png
 
 Le projet est déposé sur GitHub et le lien du repository est remis sur l'ENT.
 
-
 Conclusion
 
-Le client envoie une opération en trois éléments (opérande, opérateur, opérande) avec DataOutputStream. Le serveur la calcule avec DataInputStream et renvoie le résultat. La validation de la syntaxe évite d'envoyer des chaînes incorrectes.
+Au lieu d'envoyer trois valeurs séparées, le client envoie un seul objet Operation sérialisé. Le serveur le reçoit, lit ses données, calcule et renvoie le résultat.
